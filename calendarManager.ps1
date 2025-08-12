@@ -17,16 +17,16 @@ function Set-Action {
     $PermissionActionChoice = Read-Host -Prompt "Enter the number corresponding to the action you want to perform"
 
     $PermissionAction = switch ($PermissionActionChoice) {
-    "1" { "default" }
-    "2" { "specific" }
-    "3" { "remove" }
+        "1" { "default" }
+        "2" { "specific" }
+        "3" { "remove" }
     }
 
     return $PermissionAction
 }
 
 function Get-PermissionLevel {
-    [ordered]$permissionLevels = @{
+    $permissionLevels = [ordered]@{
         "1"  = "Owner"
         "2"  = "PublishingEditor"
         "3"  = "Editor"
@@ -42,11 +42,11 @@ function Get-PermissionLevel {
     do {
         Write-Host ""
         Write-Host "Please choose the permission level you'd like to set:"
-        foreach ($entry in $permissionLevels.GetEnumerator()) {
-            Write-Host "$($entry.Key). $($entry.Value)"
+        foreach ($k in $permissionLevels.Keys) {
+            Write-Host "$k. $($permissionLevels[$k])"
         }
         $selection = Read-Host -Prompt "Enter the number corresponding to the permission level"
-    } until ($permissionLevels.ContainsKey($selection))
+    } until ($permissionLevels.Contains($selection))
 
     return $permissionLevels[$selection]
 }
@@ -68,15 +68,16 @@ function Add-Or-Update-Permission {
     )
 
     # Check if the permission exists
-        $existingPermission = Get-MailboxFolderPermission -Identity "${Email}:\Calendar" -User $User -ErrorAction SilentlyContinue
+    $existingPermission = Get-MailboxFolderPermission -Identity "${Email}:\Calendar" -User $User -ErrorAction SilentlyContinue
 
-        if ($null -eq $ExistingPermission) {
-            # Add the permission if it doesn't exist
-            Add-MailboxFolderPermission -Identity "${Email}:\Calendar" -User $User -AccessRights $Access
-        } else {
-            # Update the existing permission
-            Set-MailboxFolderPermission -Identity "${Email}:\Calendar" -User $User -AccessRights $Access
-        }
+    if ($null -eq $existingPermission) {
+        # Add the permission if it doesn't exist
+        Add-MailboxFolderPermission -Identity "${Email}:\Calendar" -User $User -AccessRights $Access
+    }
+    else {
+        # Update the existing permission
+        Set-MailboxFolderPermission -Identity "${Email}:\Calendar" -User $User -AccessRights $Access
+    }
 }
 
 User-Login
@@ -96,7 +97,7 @@ do {
     }
 
     # If Permissions is modified what should we do
-    if ($PermissionAction -eq 'specific' -or $PermissionAction -eq 'default'){
+    if ($PermissionAction -eq 'specific' -or $PermissionAction -eq 'default') {
         $PermissionLevelText = Get-PermissionLevel
     }
 
