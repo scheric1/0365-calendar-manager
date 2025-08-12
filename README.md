@@ -60,6 +60,27 @@ When prompted:
 
 The script will display permissions before and after each change and disconnect from Exchange Online upon completion.
 
+## Troubleshooting
+
+- **`Connect-ExchangeOnline` not recognized**: Ensure the Exchange Online Management module is installed and imported.
+
+  ```powershell
+  Install-Module ExchangeOnlineManagement -Scope CurrentUser -Force
+  Import-Module ExchangeOnlineManagement
+  ```
+
+- **Untrusted repository errors**: Trust the PowerShell Gallery and retry the installation.
+
+  ```powershell
+  Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+  ```
+
+- **Script blocked by execution policy**: Allow scripts to run for the current session.
+
+  ```powershell
+  Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+  ```
+
 ## Notes
 
 The script requires network connectivity to Microsoft's cloud services. If you have not installed the Exchange Online module yet, run the installation commands above before executing the script.
