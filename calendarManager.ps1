@@ -1,3 +1,21 @@
+$ScriptVersion = "1.0.0"
+$RepoUrl = "https://github.com/scheric1/0365-calendar-manager"
+
+function Check-Version {
+    $RawUrl = "https://raw.githubusercontent.com/scheric1/0365-calendar-manager/main/calendarManager.ps1"
+    try {
+        $response = Invoke-WebRequest -Uri $RawUrl -UseBasicParsing -ErrorAction Stop
+        $remoteVersion = [regex]::Match($response.Content, '\$ScriptVersion\s*=\s*"([^"]+)"').Groups[1].Value
+        if ($remoteVersion -and ([version]$remoteVersion -gt [version]$ScriptVersion)) {
+            Write-Host "A newer version ($remoteVersion) is available. Download it from $RepoUrl" -ForegroundColor Yellow
+        } else {
+            Write-Host "Running latest version ($ScriptVersion)."
+        }
+    } catch {
+        Write-Host "Unable to check for updates: $_" -ForegroundColor Yellow
+    }
+}
+
 function User-Login {
     # Prompt for user's email
     $UserEmail = Read-Host -Prompt "Please enter your email address to login"
@@ -113,6 +131,7 @@ function Add-Or-Update-Permission {
     }
 }
 
+Check-Version
 User-Login
 
 

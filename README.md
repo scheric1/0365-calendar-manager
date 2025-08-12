@@ -80,6 +80,9 @@ The script will display permissions before and after each change and disconnect 
   ```powershell
   Get-ChildItem "C:\Users\username\Scripts" -Filter *.ps1 -Recurse | Unblock-File
   ```
+## Version check
+
+When the script starts it compares its version with the latest copy in the GitHub repository. If an update is available, it will notify you and provide a link to download the most recent version.
 
 ## Notes
 
