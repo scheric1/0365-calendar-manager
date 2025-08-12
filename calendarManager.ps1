@@ -1,4 +1,4 @@
-$ScriptVersion = "1.0.0"
+$ScriptVersion = "1.5.0"
 $RepoUrl = "https://github.com/scheric1/0365-calendar-manager"
 
 function Check-Version {
