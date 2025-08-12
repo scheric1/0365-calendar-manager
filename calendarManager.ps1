@@ -3,7 +3,13 @@ function User-Login {
     $UserEmail = Read-Host -Prompt "Please enter your email address to login"
 
     # Connect to Microsoft Exchange
-    Connect-ExchangeOnline -UserPrincipalName $UserEmail
+    try {
+        Connect-ExchangeOnline -UserPrincipalName $UserEmail -ErrorAction Stop
+    }
+    catch {
+        Write-Error -Message "Failed to connect to Exchange Online: $_" -ErrorId 1001
+        exit
+    }
 }
 
 function Set-Action {
@@ -36,7 +42,13 @@ function Get-Permissions {
         [string]$CalendarOwner
     )
     Write-Host ""
-    Get-MailboxFolderPermission -Identity "${CalendarOwner}:\Calendar"
+    try {
+        Get-MailboxFolderPermission -Identity "${CalendarOwner}:\Calendar" -ErrorAction Stop
+    }
+    catch {
+        Write-Error -Message "Failed to retrieve permissions for ${CalendarOwner}: $_" -ErrorId 1002
+        return
+    }
     Write-Host ""
 }
 
@@ -48,15 +60,31 @@ function Add-Or-Update-Permission {
     )
 
     # Check if the permission exists
-        $existingPermission = Get-MailboxFolderPermission -Identity "${Email}:\Calendar" -User $User -ErrorAction SilentlyContinue
+    try {
+        $existingPermission = Get-MailboxFolderPermission -Identity "${Email}:\Calendar" -User $User -ErrorAction Stop
+    }
+    catch {
+        Write-Error -Message "Failed to retrieve existing permission for ${User}: $_" -ErrorId 1003
+        return
+    }
 
-        if ($null -eq $ExistingPermission) {
-            # Add the permission if it doesn't exist
-            Add-MailboxFolderPermission -Identity "${Email}:\Calendar" -User $User -AccessRights $Access
-        } else {
-            # Update the existing permission
-            Set-MailboxFolderPermission -Identity "${Email}:\Calendar" -User $User -AccessRights $Access
+    if ($null -eq $ExistingPermission) {
+        # Add the permission if it doesn't exist
+        try {
+            Add-MailboxFolderPermission -Identity "${Email}:\Calendar" -User $User -AccessRights $Access -ErrorAction Stop
         }
+        catch {
+            Write-Error -Message "Failed to add permission for ${User}: $_" -ErrorId 1004
+        }
+    } else {
+        # Update the existing permission
+        try {
+            Set-MailboxFolderPermission -Identity "${Email}:\Calendar" -User $User -AccessRights $Access -ErrorAction Stop
+        }
+        catch {
+            Write-Error -Message "Failed to update permission for ${User}: $_" -ErrorId 1005
+        }
+    }
 }
 
 User-Login
@@ -118,8 +146,13 @@ do {
 
     # Perform the default action
     if ($PermissionAction -eq 'default') {
-        Set-MailboxFolderPermission -Identity "${CalendarOwner}:\Calendar" -User Default -AccessRights $PermissionLevelText
-    } 
+        try {
+            Set-MailboxFolderPermission -Identity "${CalendarOwner}:\Calendar" -User Default -AccessRights $PermissionLevelText -ErrorAction Stop
+        }
+        catch {
+            Write-Error -Message "Failed to set default permissions for ${CalendarOwner}: $_" -ErrorId 1006
+        }
+    }
 
     # Perform Specific Action    
     if ($PermissionAction -eq 'specific') {
@@ -129,7 +162,12 @@ do {
     # Perform Remove Action
     if ($PermissionAction -eq 'remove') {
         $UserToModifyPermission = Read-Host -Prompt "Please enter the email address of the user permission you want to remove"
-        Remove-MailboxFolderPermission -Identity "${CalendarOwner}:\Calendar" -User $UserToModifyPermission
+        try {
+            Remove-MailboxFolderPermission -Identity "${CalendarOwner}:\Calendar" -User $UserToModifyPermission -ErrorAction Stop
+        }
+        catch {
+            Write-Error -Message "Failed to remove permission for ${UserToModifyPermission}: $_" -ErrorId 1007
+        }
     }
 
     Get-Permissions $CalendarOwner
@@ -139,4 +177,9 @@ do {
 } while ($MakeMoreChanges -in @('yes', 'Y', 'y'))
 
 # Disconnect from Microsoft Exchange
-Disconnect-ExchangeOnline
+try {
+    Disconnect-ExchangeOnline -Confirm:$false -ErrorAction Stop
+}
+catch {
+    Write-Error -Message "Failed to disconnect from Exchange Online: $_" -ErrorId 1008
+}
