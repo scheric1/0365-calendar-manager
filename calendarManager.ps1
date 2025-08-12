@@ -25,6 +25,32 @@ function Set-Action {
     return $PermissionAction
 }
 
+function Get-PermissionLevel {
+    [ordered]$permissionLevels = @{
+        "1"  = "Owner"
+        "2"  = "PublishingEditor"
+        "3"  = "Editor"
+        "4"  = "PublishingAuthor"
+        "5"  = "Author"
+        "6"  = "NonEditingAuthor"
+        "7"  = "Reviewer"
+        "8"  = "Contributor"
+        "9"  = "AvailabilityOnly"
+        "10" = "LimitedDetails"
+    }
+
+    do {
+        Write-Host ""
+        Write-Host "Please choose the permission level you'd like to set:"
+        foreach ($entry in $permissionLevels.GetEnumerator()) {
+            Write-Host "$($entry.Key). $($entry.Value)"
+        }
+        $selection = Read-Host -Prompt "Enter the number corresponding to the permission level"
+    } until ($permissionLevels.ContainsKey($selection))
+
+    return $permissionLevels[$selection]
+}
+
 function Get-Permissions {
     param(
         [string]$CalendarOwner
@@ -71,36 +97,7 @@ do {
 
     # If Permissions is modified what should we do
     if ($PermissionAction -eq 'specific' -or $PermissionAction -eq 'default'){
-        # List permission levels
-        Write-Host ""
-        Write-Host "Please choose the permission level you'd like to set:"
-        Write-Host "1. Owner"
-        Write-Host "2. PublishingEditor"
-        Write-Host "3. Editor"
-        Write-Host "4. PublishingAuthor"
-        Write-Host "5. Author"
-        Write-Host "6. NonEditingAuthor"
-        Write-Host "7. Reviewer"
-        Write-Host "8. Contributor"
-        Write-Host "9. AvailabilityOnly"
-        Write-Host "10. LimitedDetails"
-
-        # Prompt user to choose permission level
-        $PermissionLevel = Read-Host -Prompt "Enter the number corresponding to the permission level"
-
-        # Convert the number to a permission level string
-        $PermissionLevelText = switch ($PermissionLevel) {
-            "1" { "Owner" }
-            "2" { "PublishingEditor" }
-            "3" { "Editor" }
-            "4" { "PublishingAuthor" }
-            "5" { "Author" }
-            "6" { "NonEditingAuthor" }
-            "7" { "Reviewer" }
-            "8" { "Contributor" }
-            "9" { "AvailabilityOnly" }
-            "10" { "LimitedDetails" }
-        }
+        $PermissionLevelText = Get-PermissionLevel
     }
 
 
