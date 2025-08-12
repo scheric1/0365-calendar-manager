@@ -69,16 +69,16 @@ The script will display permissions before and after each change and disconnect 
   Import-Module ExchangeOnlineManagement
   ```
 
-- **Untrusted repository errors**: Trust the PowerShell Gallery and retry the installation.
+- **Untrusted repository errors**: Allow unsigned scripts for your user
 
   ```powershell
-  Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+  Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
   ```
 
-- **Script blocked by execution policy**: Allow scripts to run for the current session.
+- **Script blocked by execution policy**: Bulk Fix your Scripts folder
 
   ```powershell
-  Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+  Get-ChildItem "C:\Users\username\Scripts" -Filter *.ps1 -Recurse | Unblock-File
   ```
 
 ## Notes
