@@ -18,7 +18,7 @@ param(
 )
 
 # Dot-source shared helpers
-. "$PSScriptRoot\_Shared.ps1"
+. (Join-Path $PSScriptRoot "_Shared.ps1")
 
 function Read-ActionChoice {
     do {

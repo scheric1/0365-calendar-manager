@@ -1,7 +1,7 @@
 # Test-Installation.ps1 — Diagnostic checks for O365 Calendar Manager
 
 # Dot-source shared helpers
-. "$PSScriptRoot\..\_Shared.ps1"
+. (Join-Path $PSScriptRoot ".." "_Shared.ps1")
 
 Write-Header "Installation Diagnostics"
 
