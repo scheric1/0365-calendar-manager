@@ -1,89 +1,150 @@
-# 0365-calendar-manager
+# O365 Calendar Manager
 
-A PowerShell script for viewing and managing Exchange Online calendar permissions.
+PowerShell tool for managing Exchange Online calendar permissions — view, modify, and remove calendar sharing permissions from the command line.
+
+**Version 2.0.0**
+
+## Quick Start
+
+```powershell
+# Install prerequisites
+./setup/Install-Prerequisites.ps1
+
+# Verify installation
+./setup/Test-Installation.ps1
+
+# Run interactively
+./Invoke-CalendarManager.ps1
+
+# Or with parameters (skips prompts for provided values)
+./Invoke-CalendarManager.ps1 -CalendarOwner john@contoso.com -Action Default -PermissionLevel Reviewer
+```
 
 ## Features
 
-- Connects to Exchange Online using the supplied user principal name.
-- Displays existing permissions for a mailbox calendar.
-- Supports:
-  - Modifying default calendar permissions.
-  - Adding or updating permissions for a specific user.
-  - Removing custom permissions for a specific user.
-- Presents a menu of common permission levels (Owner, Editor, Reviewer, etc.).
-- Shows updated permissions after each change and allows multiple edits per session.
-- Disconnects from Exchange Online when finished.
+- View current calendar permissions for any mailbox
+- Modify default calendar permissions (what everyone in the org sees)
+- Add or update permissions for specific users
+- Remove custom permissions
+- Confirmation prompts before every change
+- Colour-coded output for clear feedback
+- CLI parameters to skip interactive prompts
+- Auto-update check against the latest GitHub version
+- Cross-platform (Windows, macOS, Linux with PowerShell 7+)
 
 ## Prerequisites
 
-- PowerShell 7+ or Windows PowerShell.
-- [Exchange Online Management](https://learn.microsoft.com/powershell/exchange/connect-to-exchange-online-powershell) module.
-- Permission to modify the target mailbox's calendar in Exchange Online.
+- **PowerShell** 5.1+ (Windows) or 7+ (cross-platform)
+- **ExchangeOnlineManagement** module
+- Exchange Online administrator or delegate permissions
 
-### Installing prerequisites on Windows
+### Installing Prerequisites
+
+Run the included installer:
 
 ```powershell
+# apt (Ubuntu/Debian — installs PowerShell)
+sudo apt install powershell
+
+# Then install the Exchange module
+./setup/Install-Prerequisites.ps1
+
+# Or install manually
 Install-Module ExchangeOnlineManagement -Scope CurrentUser
-# If scripts are blocked:
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned
-```
-
-### Installing prerequisites on macOS or Linux
-
-1. [Install PowerShell](https://learn.microsoft.com/powershell/scripting/install/installing-powershell).
-2. Install the Exchange Online module:
-
-```powershell
-pwsh -Command "Install-Module ExchangeOnlineManagement -Scope CurrentUser"
 ```
 
 ## Usage
 
-Run the script from PowerShell:
+### Interactive Mode
+
+Run with no parameters for the full interactive experience:
 
 ```powershell
-./calendarManager.ps1
-# or
-pwsh ./calendarManager.ps1
+./Invoke-CalendarManager.ps1
 ```
 
-When prompted:
+You will be prompted for:
+1. Your email address (to authenticate)
+2. The calendar owner's email
+3. The action to perform
+4. The permission level (for add/modify actions)
+5. Confirmation before applying
 
-1. Enter your email address to authenticate.
-2. Provide the calendar owner's email address to view or modify.
-3. Choose an action:
-   - Modify default permissions
-   - Update permissions for a specific user
-   - Remove a user's custom permission
-4. If modifying or adding a permission, select the desired access level from the list.
-5. After each change, decide whether to make more changes; type `N` to exit.
+### CLI Mode
 
-The script will display permissions before and after each change and disconnect from Exchange Online upon completion.
+Provide parameters to skip the corresponding prompts. Authentication is always interactive.
+
+```powershell
+# View permissions only
+./Invoke-CalendarManager.ps1 -CalendarOwner john@contoso.com
+
+# Set default calendar permission
+./Invoke-CalendarManager.ps1 -CalendarOwner john@contoso.com -Action Default -PermissionLevel Reviewer
+
+# Grant a specific user access
+./Invoke-CalendarManager.ps1 -CalendarOwner john@contoso.com -Action User -User jane@contoso.com -PermissionLevel Editor
+
+# Remove a user's custom permission
+./Invoke-CalendarManager.ps1 -CalendarOwner john@contoso.com -Action Remove -User jane@contoso.com
+```
+
+**Note:** Even in CLI mode, you will be asked to confirm the change before it is applied.
+
+## Permission Levels
+
+| Level | Description |
+|-------|-------------|
+| Owner | Full control — read, create, modify, delete all items and subfolders |
+| PublishingEditor | Create, read, modify, delete all items; create subfolders |
+| Editor | Create, read, modify, delete all items |
+| PublishingAuthor | Create and read all items; modify and delete own items; create subfolders |
+| Author | Create and read all items; modify and delete own items |
+| NonEditingAuthor | Create and read all items; delete own items |
+| Reviewer | Read all items (view only) |
+| Contributor | Create items only (cannot read) |
+| AvailabilityOnly | See free/busy status only |
+| LimitedDetails | See free/busy status with subject and location |
+
+## Project Structure
+
+```
+0365-calendar-manager/
+├── Invoke-CalendarManager.ps1      # Main script
+├── _Shared.ps1                     # Shared helpers (auth, output, version check)
+├── README.md
+├── CHANGELOG.md
+└── setup/
+    ├── Install-Prerequisites.ps1   # Prerequisite installer
+    └── Test-Installation.ps1       # Diagnostic test suite
+```
+
+## Security
+
+- **No credentials stored** — uses interactive OAuth 2.0 authentication only
+- **Read-only by default** — viewing permissions requires no confirmation
+- **Confirmation required** — every permission change shows a summary and requires explicit `y` to proceed
+- **No data exfiltration** — version check is the only outbound call (to GitHub raw content)
 
 ## Troubleshooting
 
-- **`Connect-ExchangeOnline` not recognized**: Ensure the Exchange Online Management module is installed and imported.
+| Issue | Solution |
+|-------|----------|
+| `Connect-ExchangeOnline` not recognised | Run `./setup/Install-Prerequisites.ps1` or `Install-Module ExchangeOnlineManagement -Scope CurrentUser` |
+| Untrusted repository error | `Set-PSRepository -Name PSGallery -InstallationPolicy Trusted` |
+| Script blocked by execution policy | `Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned` |
+| Authentication fails | Ensure your account has Exchange administrator or delegate permissions |
+| `\_Shared.ps1` not found | Run the script from the project root directory |
 
-  ```powershell
-  Install-Module ExchangeOnlineManagement -Scope CurrentUser -Force
-  Import-Module ExchangeOnlineManagement
-  ```
+## Version Check
 
-- **Untrusted repository errors**: Allow unsigned scripts for your user
+On startup, the script compares its version against the latest copy on GitHub. If an update is available, you will see a yellow notification with a download link. This check is non-blocking — if GitHub is unreachable, the script continues normally.
 
-  ```powershell
-  Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
-  ```
+## Resources
 
-- **Script blocked by execution policy**: Bulk Fix your Scripts folder
+- [Exchange Online PowerShell](https://learn.microsoft.com/powershell/exchange/exchange-online-powershell)
+- [ExchangeOnlineManagement module](https://www.powershellgallery.com/packages/ExchangeOnlineManagement)
+- [Calendar folder permissions](https://learn.microsoft.com/powershell/module/exchange/set-mailboxfolderpermission)
 
-  ```powershell
-  Get-ChildItem "C:\Users\username\Scripts" -Filter *.ps1 -Recurse | Unblock-File
-  ```
-## Version check
+---
 
-When the script starts it compares its version with the latest copy in the GitHub repository. If an update is available, it will notify you and provide a link to download the most recent version.
-
-## Notes
-
-The script requires network connectivity to Microsoft's cloud services. If you have not installed the Exchange Online module yet, run the installation commands above before executing the script.
+Version 2.0.0 | Tested on PowerShell 7.5 (Ubuntu, Windows, macOS) and Windows PowerShell 5.1
