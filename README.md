@@ -37,6 +37,7 @@ PowerShell tool for managing Exchange Online calendar permissions — view, modi
 - **PowerShell** 5.1+ (Windows) or 7+ (cross-platform)
 - **ExchangeOnlineManagement** module
 - Exchange Online administrator or delegate permissions
+- **Recipient Management** role group membership (required to manage other users' calendars — see [Troubleshooting](#mailbox-identity-error) if you get "mailbox doesn't exist" errors)
 
 ### Installing Prerequisites
 
@@ -133,7 +134,43 @@ Provide parameters to skip the corresponding prompts. Authentication is always i
 | Untrusted repository error | `Set-PSRepository -Name PSGallery -InstallationPolicy Trusted` |
 | Script blocked by execution policy | `Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned` |
 | Authentication fails | Ensure your account has Exchange administrator or delegate permissions |
-| `\_Shared.ps1` not found | Run the script from the project root directory |
+| `_Shared.ps1` not found | Run the script from the project root directory |
+| "The specified mailbox Identity doesn't exist" | See **Mailbox Identity Error** section below |
+
+### Mailbox Identity Error
+
+If the script works for your own calendar but fails for other users' calendars with:
+
+```
+The specified mailbox Identity:"user@domain.com" doesn't exist.
+```
+
+This is **not** a missing mailbox — it's a misleading error caused by insufficient Exchange RBAC roles. The `Get-MailboxFolderPermission` cmdlet requires membership in the **Recipient Management** role group to query other users' calendars. Global Admin alone is not sufficient.
+
+**Diagnosis:**
+
+```powershell
+# Check if you're in Recipient Management
+Get-RoleGroupMember "Recipient Management"
+```
+
+If your account is not listed, that's the problem.
+
+**Fix:**
+
+```powershell
+# Add yourself (requires Exchange admin privileges)
+Add-RoleGroupMember "Recipient Management" -Member you@yourdomain.com
+
+# Verify
+Get-RoleGroupMember "Recipient Management"
+
+# Disconnect and reconnect (the token must refresh to pick up the new role)
+Disconnect-ExchangeOnline -Confirm:$false
+Connect-ExchangeOnline -UserPrincipalName you@yourdomain.com
+```
+
+> **Note:** Role changes can take 15–30 minutes to propagate. If it still fails after reconnecting, wait and try again.
 
 ## Version Check
 
