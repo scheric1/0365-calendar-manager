@@ -1,8 +1,8 @@
 $ScriptVersion = "1.5.0"
 $RepoUrl = "https://github.com/scheric1/0365-calendar-manager"
 
-function Check-Version {
-    $RawUrl = "https://raw.githubusercontent.com/scheric1/0365-calendar-manager/main/calendarManager.ps1"
+function Test-ScriptVersion {
+    $RawUrl = "https://raw.githubusercontent.com/scheric1/0365-calendar-manager/main/Invoke-CalendarManager.ps1"
     try {
         $response = Invoke-WebRequest -Uri $RawUrl -UseBasicParsing -ErrorAction Stop
         $remoteVersion = [regex]::Match($response.Content, '\$ScriptVersion\s*=\s*"([^"]+)"').Groups[1].Value
@@ -16,11 +16,9 @@ function Check-Version {
     }
 }
 
-function User-Login {
-    # Prompt for user's email
+function Connect-ExchangeSession {
     $UserEmail = Read-Host -Prompt "Please enter your email address to login"
 
-    # Connect to Microsoft Exchange
     try {
         Connect-ExchangeOnline -UserPrincipalName $UserEmail -ErrorAction Stop
     }
@@ -30,9 +28,8 @@ function User-Login {
     }
 }
 
-function Set-Action {
+function Read-ActionChoice {
     do {
-        # Ask if they want to do
         Write-Host ""
         Write-Host "Choose an action:"
         Write-Host "1. Modify default permissions"
@@ -55,7 +52,7 @@ function Set-Action {
     return $PermissionAction
 }
 
-function Get-PermissionLevel {
+function Read-PermissionLevel {
     $permissionLevels = [ordered]@{
         "1"  = "Owner"
         "2"  = "PublishingEditor"
@@ -81,7 +78,7 @@ function Get-PermissionLevel {
     return $permissionLevels[$selection]
 }
 
-function Get-Permissions {
+function Get-CalendarPermission {
     param(
         [string]$CalendarOwner
     )
@@ -96,14 +93,14 @@ function Get-Permissions {
     Write-Host ""
 }
 
-function Add-Or-Update-Permission {
+function Set-CalendarPermission {
     param(
         [string]$Email,
         [string]$User,
         [string]$Access
     )
 
-    # Check if the permission exists
+    # Check if the permission already exists
     try {
         $existingPermission = Get-MailboxFolderPermission -Identity "${Email}:\Calendar" -User $User -ErrorAction Stop
     }
@@ -112,8 +109,7 @@ function Add-Or-Update-Permission {
         return
     }
 
-    if ($null -eq $ExistingPermission) {
-        # Add the permission if it doesn't exist
+    if ($null -eq $existingPermission) {
         try {
             Add-MailboxFolderPermission -Identity "${Email}:\Calendar" -User $User -AccessRights $Access -ErrorAction Stop
         }
@@ -121,7 +117,6 @@ function Add-Or-Update-Permission {
             Write-Error -Message "Failed to add permission for ${User}: $_" -ErrorId 1004
         }
     } else {
-        # Update the existing permission
         try {
             Set-MailboxFolderPermission -Identity "${Email}:\Calendar" -User $User -AccessRights $Access -ErrorAction Stop
         }
@@ -131,28 +126,23 @@ function Add-Or-Update-Permission {
     }
 }
 
-Check-Version
-User-Login
+Test-ScriptVersion
+Connect-ExchangeSession
 
 
 do {
-    # Prompt for calendar owner's email
     $CalendarOwner = Read-Host -Prompt "Please enter the email address of the calendar owner you want to view or modify"
-    Get-Permissions $CalendarOwner
+    Get-CalendarPermission $CalendarOwner
 
-    $PermissionAction = Set-Action
+    $PermissionAction = Read-ActionChoice
 
-
-    # If specific permission is needed what email is it
     if ($PermissionAction -eq 'specific') {
         $UserToModifyPermission = Read-Host -Prompt "Please enter the email address of the user permission you want to add or modify"
     }
 
-    # If Permissions is modified what should we do
     if ($PermissionAction -eq 'specific' -or $PermissionAction -eq 'default') {
-        $PermissionLevelText = Get-PermissionLevel
+        $PermissionLevelText = Read-PermissionLevel
     }
-
 
     # Perform the default action
     if ($PermissionAction -eq 'default') {
@@ -164,12 +154,12 @@ do {
         }
     }
 
-    # Perform Specific Action    
+    # Perform specific action
     if ($PermissionAction -eq 'specific') {
-        Add-Or-Update-Permission -Email $CalendarOwner -User $UserToModifyPermission  -Access $PermissionLevelText
+        Set-CalendarPermission -Email $CalendarOwner -User $UserToModifyPermission -Access $PermissionLevelText
     }
 
-    # Perform Remove Action
+    # Perform remove action
     if ($PermissionAction -eq 'remove') {
         $UserToModifyPermission = Read-Host -Prompt "Please enter the email address of the user permission you want to remove"
         try {
@@ -180,9 +170,8 @@ do {
         }
     }
 
-    Get-Permissions $CalendarOwner
+    Get-CalendarPermission $CalendarOwner
 
-    # Ask if the user wants to make more changes
     $MakeMoreChanges = Read-Host -Prompt "Do you want to make more changes? [Y/N]"
 } while ($MakeMoreChanges -in @('yes', 'Y', 'y'))
 
