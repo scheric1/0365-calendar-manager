@@ -1,0 +1,44 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
+
+## [2.0.0] - 2026-04-13
+
+### Added
+- Project restructure: `setup/` directory, proper Verb-Noun naming
+- Shared helpers (`_Shared.ps1`) with `Write-Status`, `Write-Header`, `Read-HostWithDefault`, `Test-ExoModuleInstalled`, `Invoke-SafeDisconnect`
+- Prerequisite installer (`setup/Install-Prerequisites.ps1`) with multi-phase installation and verification
+- Installation diagnostics (`setup/Test-Installation.ps1`) with 6-test suite and colour-coded results
+- Colour-coded output with `[INFO]`/`[OK]`/`[WARNING]`/`[ERROR]` prefixes throughout
+- Confirmation prompts before all permission changes with summary display
+- CLI parameter support (`-CalendarOwner`, `-Action`, `-User`, `-PermissionLevel`) to skip interactive prompts
+- Module availability check before connecting (with install instructions on failure)
+- Success messages after each permission change
+
+### Changed
+- Main script renamed from `calendarManager.ps1` to `Invoke-CalendarManager.ps1`
+- All functions renamed to Verb-Noun convention:
+  - `Check-Version` → `Test-ScriptVersion`
+  - `User-Login` → `Connect-ExchangeSession`
+  - `Set-Action` → `Read-ActionChoice`
+  - `Get-PermissionLevel` → `Read-PermissionLevel`
+  - `Get-Permissions` → `Get-CalendarPermission`
+  - `Add-Or-Update-Permission` → `Set-CalendarPermission`
+- Version check now matches `$script:ScriptVersion` pattern (supports dot-sourced variable)
+- Disconnect uses `Invoke-SafeDisconnect` with error suppression
+- README rewritten with comprehensive documentation
+
+### Breaking
+- Main script renamed — update any shortcuts or aliases pointing to `calendarManager.ps1`
+
+## [1.5.0] - 2025-08-12
+
+### Added
+- Version check against GitHub on startup
+- Interactive calendar permission management
+- Default, user-specific, and remove permission actions
+- Permission level selection menu (10 levels)
+- Multi-operation session support (loop until user exits)
+- Exchange Online connection and disconnect handling
