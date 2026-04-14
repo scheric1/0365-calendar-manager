@@ -2,7 +2,7 @@
 # Dot-sourced by Invoke-CalendarManager.ps1 and setup scripts
 
 $script:ScriptVersion = "2.0.0"
-$script:RepoUrl = "https://github.com/scheric1/0365-calendar-manager"
+$script:RepoUrl = "https://github.com/scheric1/o365-calendar-manager"
 
 function Write-Status {
     param(
@@ -107,7 +107,7 @@ function Test-ExoModuleInstalled {
 }
 
 function Test-ScriptVersion {
-    $RawUrl = "https://raw.githubusercontent.com/scheric1/0365-calendar-manager/main/Invoke-CalendarManager.ps1"
+    $RawUrl = "https://raw.githubusercontent.com/scheric1/o365-calendar-manager/main/Invoke-CalendarManager.ps1"
     try {
         $response = Invoke-WebRequest -Uri $RawUrl -UseBasicParsing -ErrorAction Stop
         $remoteVersion = [regex]::Match($response.Content, '\$script:ScriptVersion\s*=\s*"([^"]+)"').Groups[1].Value

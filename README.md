@@ -112,7 +112,7 @@ Provide parameters to skip the corresponding prompts. Authentication is always i
 ## Project Structure
 
 ```
-0365-calendar-manager/
+o365-calendar-manager/
 ├── Invoke-CalendarManager.ps1      # Main script
 ├── _Shared.ps1                     # Shared helpers (auth, output, version check)
 ├── README.md
