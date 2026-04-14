@@ -30,6 +30,7 @@ PowerShell tool for managing Exchange Online calendar permissions — view, modi
 - Colour-coded output for clear feedback
 - CLI parameters to skip interactive prompts
 - Auto-update check against the latest GitHub version
+- Auto-install missing dependencies on first run (with prompt, or `-AutoInstall` to skip)
 - Cross-platform (Windows, macOS, Linux with PowerShell 7+)
 
 ## Prerequisites
@@ -44,15 +45,14 @@ PowerShell tool for managing Exchange Online calendar permissions — view, modi
 Run the included installer:
 
 ```powershell
-# apt (Ubuntu/Debian — installs PowerShell)
-sudo apt install powershell
-
-# Then install the Exchange module
+# Run the installer (from PowerShell)
 ./setup/Install-Prerequisites.ps1
 
-# Or install manually
+# Or install the module manually
 Install-Module ExchangeOnlineManagement -Scope CurrentUser
 ```
+
+> **Installing PowerShell itself:** See [Microsoft's installation guide](https://learn.microsoft.com/powershell/scripting/install/installing-powershell) for your platform. On Ubuntu/Debian, PowerShell is available via Microsoft's apt repository.
 
 ## Usage
 
@@ -87,6 +87,9 @@ Provide parameters to skip the corresponding prompts. Authentication is always i
 
 # Remove a user's custom permission
 ./Invoke-CalendarManager.ps1 -CalendarOwner john@contoso.com -Action Remove -User jane@contoso.com
+
+# Auto-install the ExchangeOnlineManagement module if it's missing (skips the prompt)
+./Invoke-CalendarManager.ps1 -AutoInstall
 ```
 
 **Note:** Even in CLI mode, you will be asked to confirm the change before it is applied.
@@ -136,6 +139,7 @@ Provide parameters to skip the corresponding prompts. Authentication is always i
 | Authentication fails | Ensure your account has Exchange administrator or delegate permissions |
 | `_Shared.ps1` not found | Run the script from the project root directory |
 | "The specified mailbox Identity doesn't exist" | See **Mailbox Identity Error** section below |
+| "The user is either not a valid SMTP address, or there is no matching information" | See **Duplicate Recipient Error** section below |
 
 ### Mailbox Identity Error
 
@@ -171,6 +175,41 @@ Connect-ExchangeOnline -UserPrincipalName you@yourdomain.com
 ```
 
 > **Note:** Role changes can take 15–30 minutes to propagate. If it still fails after reconnecting, wait and try again.
+
+### Duplicate Recipient Error
+
+If adding a new user fails with:
+
+```
+The user "user@domain.com" is either not valid SMTP address, or there is no matching information.
+```
+
+…but you have confirmed the user exists and the email is correct, there is likely a **duplicate recipient** in Exchange. This commonly happens when a user was offboarded (their mailbox converted to a shared mailbox) and later rehired (a new user mailbox created with the same or overlapping SMTP address).
+
+**Diagnosis:**
+
+```powershell
+# Search for all recipients matching the user
+Get-Recipient -ResultSize Unlimited | Where-Object { $_.DisplayName -like "*FirstName*" } | Select-Object DisplayName, PrimarySmtpAddress, Alias, RecipientTypeDetails, ExchangeObjectId
+```
+
+If you see two recipients (typically one `SharedMailbox` and one `UserMailbox`) with the same or conflicting email addresses, that's the problem.
+
+**Fix:** Clean up the duplicate. The cleanest approach depends on which mailbox contains the user's current data:
+
+- If the user has been working out of the **shared mailbox** post-rehire (common when offboarding was never fully reversed): convert it back to a user mailbox and remove the empty new one
+  ```powershell
+  # Remove the empty duplicate first
+  Remove-Mailbox -Identity <empty-mailbox-guid> -Confirm:$false
+
+  # Convert the shared mailbox back to a regular user mailbox
+  Set-Mailbox -Identity <shared-mailbox-guid> -Type Regular
+
+  # Then assign a license in the M365 Admin Centre
+  ```
+- If the **new user mailbox** is already being used and the shared mailbox is stale data: export/archive the shared content, then `Remove-Mailbox` it
+
+Consult with whoever handled the rehire to confirm which mailbox has the current data before making changes.
 
 ## Version Check
 
