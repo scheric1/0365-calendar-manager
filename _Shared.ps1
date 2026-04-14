@@ -62,13 +62,46 @@ function Read-HostWithDefault {
 }
 
 function Test-ExoModuleInstalled {
+    param(
+        [switch]$AutoInstall
+    )
+
     $module = Get-Module -ListAvailable -Name ExchangeOnlineManagement | Sort-Object Version -Descending | Select-Object -First 1
     if ($module) {
         Write-Status -Level Info -Message "ExchangeOnlineManagement v$($module.Version) found."
         return $true
+    }
+
+    Write-Status -Level Warning -Message "ExchangeOnlineManagement module is not installed."
+
+    if ($AutoInstall) {
+        $install = $true
     } else {
-        Write-Status -Level Error -Message "ExchangeOnlineManagement module is not installed."
-        Write-Status -Level Info -Message "Install it with: Install-Module ExchangeOnlineManagement -Scope CurrentUser"
+        $response = Read-Host -Prompt "Install it now? (y/N)"
+        $install = $response -in @('y', 'yes', 'Y')
+    }
+
+    if (-not $install) {
+        Write-Status -Level Info -Message "You can install it later with: Install-Module ExchangeOnlineManagement -Scope CurrentUser"
+        return $false
+    }
+
+    try {
+        Write-Status -Level Info -Message "Installing ExchangeOnlineManagement module (CurrentUser scope)..."
+
+        # Ensure PSGallery is trusted (one-time) to avoid a confirmation prompt
+        $gallery = Get-PSRepository -Name PSGallery -ErrorAction SilentlyContinue
+        if ($gallery -and $gallery.InstallationPolicy -ne "Trusted") {
+            Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+        }
+
+        Install-Module -Name ExchangeOnlineManagement -Scope CurrentUser -Force -AllowClobber -ErrorAction Stop
+        Write-Status -Level OK -Message "ExchangeOnlineManagement installed successfully."
+        return $true
+    }
+    catch {
+        Write-Status -Level Error -Message "Failed to install ExchangeOnlineManagement: $_"
+        Write-Status -Level Info -Message "Try running ./setup/Install-Prerequisites.ps1 manually."
         return $false
     }
 }
@@ -89,7 +122,11 @@ function Test-ScriptVersion {
 }
 
 function Connect-ExchangeSession {
-    if (-not (Test-ExoModuleInstalled)) {
+    param(
+        [switch]$AutoInstall
+    )
+
+    if (-not (Test-ExoModuleInstalled -AutoInstall:$AutoInstall)) {
         exit 1
     }
 

@@ -14,7 +14,10 @@ param(
     [ValidateSet("Owner", "PublishingEditor", "Editor", "PublishingAuthor",
                  "Author", "NonEditingAuthor", "Reviewer", "Contributor",
                  "AvailabilityOnly", "LimitedDetails")]
-    [string]$PermissionLevel
+    [string]$PermissionLevel,
+
+    [Parameter(HelpMessage = "Auto-install missing ExchangeOnlineManagement module without prompting")]
+    [switch]$AutoInstall
 )
 
 # Dot-source shared helpers
@@ -119,7 +122,7 @@ function Set-CalendarPermission {
 
 Write-Header "O365 Calendar Manager"
 Test-ScriptVersion
-Connect-ExchangeSession
+Connect-ExchangeSession -AutoInstall:$AutoInstall
 
 # Map CLI -Action values to internal action codes
 $actionMap = @{ "Default" = "default"; "User" = "specific"; "Remove" = "remove" }
