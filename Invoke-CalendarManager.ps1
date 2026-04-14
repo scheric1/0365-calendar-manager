@@ -92,18 +92,13 @@ function Set-CalendarPermission {
         [string]$Access
     )
 
-    # Check if the permission already exists
-    try {
-        $existingPermission = Get-MailboxFolderPermission -Identity "${Email}:\Calendar" -User $User -ErrorAction Stop
-    }
-    catch {
-        Write-Status -Level Error -Message "Failed to retrieve existing permission for ${User}: $_"
-        return
-    }
+    # Check if the permission already exists — this cmdlet throws if no permission exists
+    # rather than returning $null, so we use SilentlyContinue and check $existingPermission explicitly
+    $existingPermission = Get-MailboxFolderPermission -Identity "${Email}:\Calendar" -User $User -ErrorAction SilentlyContinue
 
     if ($null -eq $existingPermission) {
         try {
-            Add-MailboxFolderPermission -Identity "${Email}:\Calendar" -User $User -AccessRights $Access -ErrorAction Stop
+            Add-MailboxFolderPermission -Identity "${Email}:\Calendar" -User $User -AccessRights $Access -ErrorAction Stop | Out-Null
             Write-Status -Level OK -Message "Added '$Access' permission for $User on ${Email}'s calendar."
         }
         catch {
