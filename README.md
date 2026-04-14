@@ -26,11 +26,7 @@ PowerShell tool for managing Exchange Online calendar permissions — view, modi
 - Modify default calendar permissions (what everyone in the org sees)
 - Add or update permissions for specific users
 - Remove custom permissions
-- Confirmation prompts before every change
-- Colour-coded output for clear feedback
-- CLI parameters to skip interactive prompts
-- Auto-update check against the latest GitHub version
-- Auto-install missing dependencies on first run (with prompt, or `-AutoInstall` to skip)
+- Interactive or CLI-driven workflows
 - Cross-platform (Windows, macOS, Linux with PowerShell 7+)
 
 ## Prerequisites
