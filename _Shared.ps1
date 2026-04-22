@@ -1,7 +1,7 @@
 # _Shared.ps1 — Shared helpers for O365 Calendar Manager
 # Dot-sourced by Invoke-CalendarManager.ps1 and setup scripts
 
-$script:ScriptVersion = "2.0.0"
+$script:ScriptVersion = "2.1.0"
 $script:RepoUrl = "https://github.com/scheric1/o365-calendar-manager"
 
 function Write-Status {
