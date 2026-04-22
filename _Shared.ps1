@@ -1,7 +1,7 @@
 # _Shared.ps1 — Shared helpers for O365 Calendar Manager
 # Dot-sourced by Invoke-CalendarManager.ps1 and setup scripts
 
-$script:ScriptVersion = "2.1.0"
+$script:ScriptVersion = "2.1.1"
 $script:RepoUrl = "https://github.com/scheric1/o365-calendar-manager"
 
 function Write-Status {
@@ -107,7 +107,7 @@ function Test-ExoModuleInstalled {
 }
 
 function Test-ScriptVersion {
-    $RawUrl = "https://raw.githubusercontent.com/scheric1/o365-calendar-manager/main/Invoke-CalendarManager.ps1"
+    $RawUrl = "https://raw.githubusercontent.com/scheric1/o365-calendar-manager/main/_Shared.ps1"
     try {
         $response = Invoke-WebRequest -Uri $RawUrl -UseBasicParsing -ErrorAction Stop
         $remoteVersion = [regex]::Match($response.Content, '\$script:ScriptVersion\s*=\s*"([^"]+)"').Groups[1].Value

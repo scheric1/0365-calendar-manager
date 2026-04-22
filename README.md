@@ -1,8 +1,10 @@
 # O365 Calendar Manager
 
-PowerShell tool for managing Exchange Online calendar permissions — view, modify, and remove calendar sharing permissions from the command line.
+[![Release](https://img.shields.io/github/v/release/scheric1/o365-calendar-manager?label=release)](https://github.com/scheric1/o365-calendar-manager/releases/latest)
+[![PowerShell](https://img.shields.io/badge/PowerShell-5.1%2B%20%7C%207%2B-5391FE?logo=powershell&logoColor=white)](https://learn.microsoft.com/powershell/)
+[![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey)](#requirements)
 
-**Version 2.0.0**
+PowerShell tool for managing Exchange Online calendar permissions — view, modify, and remove calendar sharing permissions from the command line.
 
 ## Quick Start
 
@@ -219,4 +221,4 @@ On startup, the script compares its version against the latest copy on GitHub. I
 
 ---
 
-Version 2.0.0 | Tested on PowerShell 7.5 (Ubuntu, Windows, macOS) and Windows PowerShell 5.1
+Tested on PowerShell 7.5 (Ubuntu, Windows, macOS) and Windows PowerShell 5.1

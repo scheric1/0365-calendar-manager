@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.1] - 2026-04-22
+
+### Fixed
+- `Test-ScriptVersion` fetched the wrong file (`Invoke-CalendarManager.ps1`) when checking for updates. Since `$script:ScriptVersion` lives in `_Shared.ps1`, the regex never matched and the update check always reported "running latest version". Now points at `_Shared.ps1`.
+
+### Changed
+- README replaces hardcoded version text with shields.io badges (release, PowerShell, platform). The release badge reads live from the GitHub Releases API, so future version bumps no longer require a README edit.
+
 ## [2.1.0] - 2026-04-22
 
 ### Added
