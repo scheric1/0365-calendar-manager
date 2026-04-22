@@ -134,6 +134,7 @@ o365-calendar-manager/
 | `Connect-ExchangeOnline` not recognised | Run `./setup/Install-Prerequisites.ps1` or `Install-Module ExchangeOnlineManagement -Scope CurrentUser` |
 | Untrusted repository error | `Set-PSRepository -Name PSGallery -InstallationPolicy Trusted` |
 | Script blocked by execution policy | `Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned` |
+| Scripts blocked after download (Windows Mark-of-the-Web) | **Before extracting:** right-click the ZIP → Properties → tick **Unblock** → OK. **After extracting:** `Get-ChildItem <project-folder> -Recurse \| Unblock-File` |
 | Authentication fails | Ensure your account has Exchange administrator or delegate permissions |
 | `_Shared.ps1` not found | Run the script from the project root directory |
 | "The specified mailbox Identity doesn't exist" | See **Mailbox Identity Error** section below |
